@@ -4,6 +4,8 @@ import java.util.Objects;
 
 import org.keycloak.representations.idm.UserRepresentation;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -21,6 +23,7 @@ public class UserDTO {
   private int statusCode;
   private String status;
 
+  @JsonIgnore
   private String globalRole;
 
   public UserRepresentation toUserRepresentation() {
@@ -39,6 +42,7 @@ public class UserDTO {
     return Objects.isNull(username) ? email : username;
   }
 
+  @JsonIgnore
   public boolean isGlobalRoleMapping() {
     return Objects.nonNull(globalRole) && "Y".equals(globalRole);
   }
