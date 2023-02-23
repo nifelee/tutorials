@@ -15,5 +15,5 @@ keycloak:
     admin-password: admin
 
 logging.level:
-  com.com.nifelee: debug
+  com.nifelee: debug
 

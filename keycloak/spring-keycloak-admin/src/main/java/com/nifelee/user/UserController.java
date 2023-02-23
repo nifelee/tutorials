@@ -1,25 +1,39 @@
 package com.nifelee.user;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import javax.ws.rs.core.Response;
 
 import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
-import org.keycloak.admin.client.resource.*;
+import org.keycloak.admin.client.resource.ClientResource;
+import org.keycloak.admin.client.resource.ClientsResource;
+import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.RoleResource;
+import org.keycloak.admin.client.resource.RolesResource;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 import org.keycloak.representations.AccessTokenResponse;
+import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping(value = "/users")
@@ -30,19 +44,13 @@ public class UserController {
   private final Keycloak keycloakAdmin;
   private final KeycloakSpringBootProperties keycloakProperties;
 
-  private String authServerUrl = "http://localhost:7070";
-  private String role = "student";
+  private final String role = "student";
 
   @PostMapping(path = "/create")
   public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
     keycloakAdmin.tokenManager().getAccessToken();
 
-    UserRepresentation user = new UserRepresentation();
-    user.setEnabled(true);
-    user.setUsername(userDTO.getEmail());
-    user.setFirstName(userDTO.getFirstname());
-    user.setLastName(userDTO.getLastname());
-    user.setEmail(userDTO.getEmail());
+    UserRepresentation user = userDTO.toUserRepresentation();
 
     // Get realm
     String realm = keycloakProperties.getRealm();
@@ -55,7 +63,7 @@ public class UserController {
 
       if (response.getStatus() == 201) {
         String userId = CreatedResponseUtil.getCreatedId(response);
-        log.info("Created userId {}", userId);
+        log.debug("Created userId {}", userId);
 
         // create password credential
         CredentialRepresentation passwordCred = new CredentialRepresentation();
@@ -68,17 +76,60 @@ public class UserController {
         // Set password credential
         userResource.resetPassword(passwordCred);
 
-        // Get realm role student
-        RolesResource roles = realmResource.roles();
-        RoleResource roleResource = roles.get(role);
-        RoleRepresentation realmRoleUser = roleResource.toRepresentation();
-
-        // Assign realm role student to user
-        userResource.roles().realmLevel().add(Collections.singletonList(realmRoleUser));
+        if (userDTO.isGlobalRoleMapping()) {
+          setGlobalRoleMapping(realmResource, userResource);
+        } else {
+          setClientRoleMapping(realmResource, userResource);
+        }
       }
     }
 
     return ResponseEntity.ok(userDTO);
+  }
+
+  /*
+   * Set Global realm roles
+   */
+  private void setGlobalRoleMapping(RealmResource realmResource, UserResource userResource) {
+    RolesResource roles = realmResource.roles();
+    RoleResource roleResource = roles.get(role);
+    RoleRepresentation realmRoleUser = roleResource.toRepresentation();
+
+    // Assign realm role student to user
+    userResource.roles().realmLevel().add(Collections.singletonList(realmRoleUser));
+  }
+
+  /*
+   * Set Client realm roles
+   */
+  private void setClientRoleMapping(RealmResource realmResource, UserResource userResource) {
+    ClientsResource clientsResource = realmResource.clients();
+
+    String clientUUID = null;
+    ClientResource clientResource = null;
+    String clientId = keycloakProperties.getResource();
+
+    List<ClientRepresentation> clients = clientsResource.findByClientId(clientId);
+    for (ClientRepresentation c : clients) {
+      log.debug("Client id: {}, clientId: {}", c.getId(), c.getClientId());
+
+      if (clientId.equals(c.getClientId())) {
+        clientUUID = c.getId();
+        clientResource = clientsResource.get(clientUUID);
+        break;
+      }
+    }
+
+    if (Objects.isNull(clientResource))
+      throw new RuntimeException(String.format("Client[%s] not found..", clientId));
+
+    RolesResource roles = clientResource.roles();
+
+    RoleResource roleResource = roles.get(role);
+    RoleRepresentation realmRoleUser = roleResource.toRepresentation();
+
+    // Assign realm role student to user
+    userResource.roles().clientLevel(clientUUID).add(Collections.singletonList(realmRoleUser));
   }
 
   @PostMapping(path = "/signin")
@@ -92,7 +143,7 @@ public class UserController {
     clientCredentials.put("grant_type", "password");
 
     Configuration configuration =
-      new Configuration(authServerUrl, realm, clientId, clientCredentials, null);
+      new Configuration(keycloakProperties.getAuthServerUrl(), realm, clientId, clientCredentials, null);
     AuthzClient authzClient = AuthzClient.create(configuration);
 
     AccessTokenResponse response =

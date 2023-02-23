@@ -1,11 +1,25 @@
-### user create
+### user create - global role mapping
 POST http://localhost:8080/users/create
 Content-Type: application/json
 
 {
   "firstname": "HK",
   "lastname": "Lee",
+  "username": "leehk",
   "email": "leehk@rsupport.com",
+  "password": "111111",
+  "globalRole": "Y"
+}
+
+### user create - client role mapping
+POST http://localhost:8080/users/create
+Content-Type: application/json
+
+{
+  "firstname": "hk",
+  "lastname": "lee",
+  "username": "hklee",
+  "email": "leehk@rview.com",
   "password": "111111"
 }
 

@@ -1,5 +1,9 @@
 package com.nifelee.user;
 
+import java.util.Objects;
+
+import org.keycloak.representations.idm.UserRepresentation;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -9,11 +13,34 @@ import lombok.ToString;
 @ToString
 public class UserDTO {
 
+  private String username;
   private String email;
   private String password;
   private String firstname;
   private String lastname;
   private int statusCode;
   private String status;
+
+  private String globalRole;
+
+  public UserRepresentation toUserRepresentation() {
+    UserRepresentation user = new UserRepresentation();
+
+    user.setEnabled(true);
+    user.setUsername(getUsernameEmptyEmail());
+    user.setEmail(email);
+    user.setFirstName(firstname);
+    user.setLastName(lastname);
+
+    return user;
+  }
+
+  private String getUsernameEmptyEmail() {
+    return Objects.isNull(username) ? email : username;
+  }
+
+  public boolean isGlobalRoleMapping() {
+    return Objects.nonNull(globalRole) && "Y".equals(globalRole);
+  }
 
 }
