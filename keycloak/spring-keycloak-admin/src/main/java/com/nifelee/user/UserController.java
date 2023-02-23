@@ -61,30 +61,39 @@ public class UserController {
       userDTO.setStatusCode(response.getStatus());
       userDTO.setStatus(response.getStatusInfo().toString());
 
-      if (response.getStatus() == 201) {
-        String userId = CreatedResponseUtil.getCreatedId(response);
-        log.debug("Created userId {}", userId);
-
-        // create password credential
-        CredentialRepresentation passwordCred = new CredentialRepresentation();
-        passwordCred.setTemporary(false);
-        passwordCred.setType(CredentialRepresentation.PASSWORD);
-        passwordCred.setValue(userDTO.getPassword());
-
-        UserResource userResource = usersResource.get(userId);
-
-        // Set password credential
-        userResource.resetPassword(passwordCred);
-
-        if (userDTO.isGlobalRoleMapping()) {
-          setGlobalRoleMapping(realmResource, userResource);
-        } else {
-          setClientRoleMapping(realmResource, userResource);
-        }
-      }
+      if (response.getStatus() == 201)
+        createdUser(userDTO, realmResource, usersResource, response);
     }
 
     return ResponseEntity.ok(userDTO);
+  }
+
+  private void createdUser(UserDTO userDTO,
+      RealmResource realmResource, UsersResource usersResource, Response response) {
+    UserResource userResource = resetPassword(userDTO, usersResource, response);
+
+    if (userDTO.isGlobalRoleMapping()) {
+      setGlobalRoleMapping(realmResource, userResource);
+    } else {
+      setClientRoleMapping(realmResource, userResource);
+    }
+  }
+
+  private static UserResource resetPassword(UserDTO userDTO, UsersResource usersResource, Response response) {
+    String userId = CreatedResponseUtil.getCreatedId(response);
+    log.debug("Created userId {}", userId);
+
+    // create password credential
+    CredentialRepresentation passwordCred = new CredentialRepresentation();
+    passwordCred.setTemporary(false);
+    passwordCred.setType(CredentialRepresentation.PASSWORD);
+    passwordCred.setValue(userDTO.getPassword());
+
+    UserResource userResource = usersResource.get(userId);
+
+    // Set password credential
+    userResource.resetPassword(passwordCred);
+    return userResource;
   }
 
   /*
