@@ -1,0 +1,19 @@
+# keycloak
+keycloak:
+  #keycloak old version /auth 붙음
+  #auth-server-url : http://localhost:8080/auth
+  auth-server-url : http://localhost:7070
+  realm : spring-keycloak-realm
+  resource : spring-keycloak-client #client ID
+  client-key-password: HAWrxPon33VlE9xwqhSwMBIsfya25S3h
+  ssl-required : external
+  use-resource-role-mappings : true
+  bearer-only: true #will prevent redirect to login page
+  #custom
+  config:
+    admin-username: admin
+    admin-password: admin
+
+logging.level:
+  com.com.nifelee: debug
+
