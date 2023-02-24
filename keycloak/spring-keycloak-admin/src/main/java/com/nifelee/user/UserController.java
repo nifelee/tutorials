@@ -44,7 +44,7 @@ public class UserController {
   private final Keycloak keycloakAdmin;
   private final KeycloakSpringBootProperties keycloakProperties;
 
-  private final String role = "student";
+  private final String role = "user";
 
   @PostMapping(path = "/create")
   public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
