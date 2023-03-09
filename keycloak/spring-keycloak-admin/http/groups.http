@@ -35,4 +35,10 @@ Content-Type: application/json
 
 {}
 
+### 그룹 삭제 (하위 그룹 유무와 상관없이 삭제 됨)
+DELETE http://localhost:8080/groups/{{groupId}}
+Content-Type: application/json
+
+{}
+
 ###

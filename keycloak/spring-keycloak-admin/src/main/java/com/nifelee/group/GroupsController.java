@@ -53,6 +53,14 @@ public class GroupsController extends AbstractKeycloakController {
     return ResponseEntity.ok(groupDTO);
   }
 
+  @DeleteMapping(path = "/{groupId}")
+  public ResponseEntity<Void> removeGroup(@PathVariable String groupId) {
+    RealmResource realm = getRealmResource();
+    realm.groups().group(groupId).remove();
+
+    return ResponseEntity.noContent().build();
+  }
+
   @PutMapping(path = "/{groupId}/users/{userId}")
   public ResponseEntity<Void> addUser(@PathVariable String groupId, @PathVariable String userId) {
     RealmResource realm = getRealmResource();
@@ -62,7 +70,7 @@ public class GroupsController extends AbstractKeycloakController {
   }
 
   @DeleteMapping(path = "/{groupId}/users/{userId}")
-  public ResponseEntity<Void> deleteUser(@PathVariable String groupId, @PathVariable String userId) {
+  public ResponseEntity<Void> leaveGroupUser(@PathVariable String groupId, @PathVariable String userId) {
     RealmResource realm = getRealmResource();
     realm.users().get(userId).leaveGroup(groupId);
 
