@@ -64,7 +64,7 @@ services:
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: 111111
       KC_DB_URL_HOST: mysql
-      KC_DB_URL_PORT: 3306
+      KC_DB_URL_PORT: 3336
       KC_DB_SCHEMA: keycloak
     ports:
       - "7070:8080"

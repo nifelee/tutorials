@@ -32,6 +32,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nifelee.common.AbstractKeycloakController;
+import com.nifelee.util.KeycloakUtil;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,38 +42,34 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(value = "/users")
 @RequiredArgsConstructor
 @Slf4j
-public class UserController {
-
-  private final Keycloak keycloakAdmin;
-  private final KeycloakSpringBootProperties keycloakProperties;
+public class UsersController extends AbstractKeycloakController {
 
   private final String role = "user";
 
   @PostMapping(path = "/create")
   public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
-    keycloakAdmin.tokenManager().getAccessToken();
-
     UserRepresentation user = userDTO.toUserRepresentation();
 
     // Get realm
-    String realm = keycloakProperties.getRealm();
-    RealmResource realmResource = keycloakAdmin.realm(realm);
+    RealmResource realmResource = getRealmResource();
     UsersResource usersResource = realmResource.users();
 
     try (Response response = usersResource.create(user)) {
-      userDTO.setStatusCode(response.getStatus());
-      userDTO.setStatus(response.getStatusInfo().toString());
+      userDTO.setResponse(response);
 
-      if (response.getStatus() == 201)
-        createdUser(userDTO, realmResource, usersResource, response);
+      if (KeycloakUtil.isCreated(response)) {
+        String userId = CreatedResponseUtil.getCreatedId(response);
+        userDTO.setId(userId);
+
+        createdUser(userDTO, realmResource, usersResource);
+      }
     }
 
     return ResponseEntity.ok(userDTO);
   }
 
-  private void createdUser(UserDTO userDTO,
-      RealmResource realmResource, UsersResource usersResource, Response response) {
-    UserResource userResource = resetPassword(userDTO, usersResource, response);
+  private void createdUser(UserDTO userDTO, RealmResource realmResource, UsersResource usersResource) {
+    UserResource userResource = resetPassword(userDTO, usersResource);
 
     if (userDTO.isGlobalRoleMapping()) {
       setGlobalRoleMapping(realmResource, userResource);
@@ -79,17 +78,14 @@ public class UserController {
     }
   }
 
-  private static UserResource resetPassword(UserDTO userDTO, UsersResource usersResource, Response response) {
-    String userId = CreatedResponseUtil.getCreatedId(response);
-    log.debug("Created userId {}", userId);
-
+  private static UserResource resetPassword(UserDTO userDTO, UsersResource usersResource) {
     // create password credential
     CredentialRepresentation passwordCred = new CredentialRepresentation();
     passwordCred.setTemporary(false);
     passwordCred.setType(CredentialRepresentation.PASSWORD);
     passwordCred.setValue(userDTO.getPassword());
 
-    UserResource userResource = usersResource.get(userId);
+    UserResource userResource = usersResource.get(userDTO.getId());
 
     // Set password credential
     userResource.resetPassword(passwordCred);
@@ -152,11 +148,11 @@ public class UserController {
     clientCredentials.put("grant_type", "password");
 
     Configuration configuration =
-      new Configuration(keycloakProperties.getAuthServerUrl(), realm, clientId, clientCredentials, null);
+        new Configuration(keycloakProperties.getAuthServerUrl(), realm, clientId, clientCredentials, null);
     AuthzClient authzClient = AuthzClient.create(configuration);
 
     AccessTokenResponse response =
-      authzClient.obtainAccessToken(userDTO.getEmail(), userDTO.getPassword());
+        authzClient.obtainAccessToken(userDTO.getEmail(), userDTO.getPassword());
 
     return ResponseEntity.ok(response);
   }

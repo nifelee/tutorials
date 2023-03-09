@@ -5,7 +5,7 @@ keycloak:
   auth-server-url : http://localhost:7070
   realm : spring-keycloak-realm
   resource : spring-keycloak-client #client ID
-  client-key-password: 8bAt5HOCFn6RnX8os87JWUyWcBFL7R0y
+  client-key-password: 69ijvGd9jeWg1SSTbZA982YKdtW8QwDR
   ssl-required : external
   use-resource-role-mappings : true
   bearer-only: true #will prevent redirect to login page

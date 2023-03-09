@@ -1,4 +1,4 @@
-### user create - global role mapping
+### user create - realm(global) role mapping
 POST http://localhost:8080/users/create
 Content-Type: application/json
 
@@ -11,6 +11,11 @@ Content-Type: application/json
   "globalRole": "Y"
 }
 
+> {%
+    client.global.set("userId", response.body.id);
+    client.log("userId: " + client.global.get("userId"));
+%}
+
 ### user create - client role mapping
 POST http://localhost:8080/users/create
 Content-Type: application/json
@@ -22,6 +27,11 @@ Content-Type: application/json
   "email": "leehk@rview.com",
   "password": "111111"
 }
+
+> {%
+    client.global.set("clientUserId", response.body.id);
+    client.log("clientUserId: " + client.global.get("clientUserId"));
+%}
 
 ### signin
 POST http://localhost:8080/users/signin

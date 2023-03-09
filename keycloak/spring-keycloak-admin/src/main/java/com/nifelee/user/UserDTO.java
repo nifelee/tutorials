@@ -5,6 +5,7 @@ import java.util.Objects;
 import org.keycloak.representations.idm.UserRepresentation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nifelee.common.KeycloakResponse;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,15 +14,14 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class UserDTO {
+public class UserDTO extends KeycloakResponse {
 
+  private String id;
   private String username;
   private String email;
   private String password;
   private String firstname;
   private String lastname;
-  private int statusCode;
-  private String status;
 
   private String globalRole;
 

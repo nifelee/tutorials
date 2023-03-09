@@ -1,0 +1,38 @@
+### group create
+POST http://localhost:8080/groups/create
+Content-Type: application/json
+
+{
+  "name": "Rsupport"
+}
+
+> {%
+    client.global.set("groupId", response.body.id);
+    client.log("groupId: " + client.global.get("groupId"));
+%}
+
+### 그룹에 사용자 추가
+PUT http://localhost:8080/groups/{{groupId}}/users/{{userId}}
+Content-Type: application/json
+
+{}
+
+### sub group create
+POST http://localhost:8080/groups/{{groupId}}/create
+Content-Type: application/json
+
+{
+  "name": "rsup-jp"
+}
+
+> {%
+    client.global.set("subGroupId", response.body.id);
+%}
+
+### 그룹에 사용자 추가 (하위 그룹도 동일하게 됨)
+PUT http://localhost:8080/groups/{{subGroupId}}/users/{{clientUserId}}
+Content-Type: application/json
+
+{}
+
+###
