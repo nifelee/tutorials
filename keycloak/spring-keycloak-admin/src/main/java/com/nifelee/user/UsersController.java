@@ -151,8 +151,7 @@ public class UsersController extends AbstractKeycloakController {
         new Configuration(keycloakProperties.getAuthServerUrl(), realm, clientId, clientCredentials, null);
     AuthzClient authzClient = AuthzClient.create(configuration);
 
-    AccessTokenResponse response =
-        authzClient.obtainAccessToken(userDTO.getEmail(), userDTO.getPassword());
+    AccessTokenResponse response = authzClient.obtainAccessToken(userDTO.getEmail(), userDTO.getPassword());
 
     return ResponseEntity.ok(response);
   }

@@ -1,11 +1,8 @@
-# keycloak
 keycloak:
-  #keycloak old version /auth 붙음
-  #auth-server-url : http://localhost:8080/auth
   auth-server-url : http://localhost:7070
   realm : spring-keycloak-realm
   resource : spring-keycloak-client #client ID
-  client-key-password: ynWyc5men4PusI0aNyeMYVjchbB5rRv8
+  client-key-password: 8bAt5HOCFn6RnX8os87JWUyWcBFL7R0y
   ssl-required : external
   use-resource-role-mappings : true
   bearer-only: true #will prevent redirect to login page

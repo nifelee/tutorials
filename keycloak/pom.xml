@@ -14,6 +14,8 @@
 
   <modules>
     <module>spring-keycloak-admin</module>
+    <module>spring-keycloak-adapter</module>
+    <module>spring-keycloak-oauth</module>
   </modules>
 
 </project>

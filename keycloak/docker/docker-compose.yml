@@ -29,6 +29,7 @@ services:
       KC_DB_URL_HOST: mysql
       KC_DB_URL_PORT: 3306
       KC_DB_SCHEMA: keycloak
+      KC_FEATURES: token_exchange
     ports:
       - "7070:8080"
     command:
