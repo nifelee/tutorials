@@ -11,6 +11,7 @@
 
   <modules>
     <module>keycloak</module>
+    <module>spring-websocket-stomp</module>
   </modules>
 
   <properties>
